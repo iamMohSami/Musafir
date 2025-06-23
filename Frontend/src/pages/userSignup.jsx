@@ -1,5 +1,7 @@
 import React, { useState, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { UserDataContext } from '../context/userContext'
 
 
 
@@ -8,24 +10,41 @@ const UserSignup = () => {
   const [ password, setPassword ] = useState('')
   const [ firstName, setFirstName ] = useState('')
   const [ lastName, setLastName ] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [ userData, setUserData ] = useState({})
 
+  const navigate = useNavigate()
+
+  const { user, setUser } = useContext(UserDataContext)
 
   const submitHandler = async (e) => {
     e.preventDefault()
-setUserData({
+const newUser = {
   fullname:{
-    firstName: firstName,
-    lastName: lastName
+    firstname: firstName,
+    lastname: lastName
   },
   email: email,
-  password: password
-})
-    console.log(userData.username);
+  password: password,
+  confirmPassword: confirmPassword
+}
+
+    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser) 
+
+    if (response.status === 201) {
+      const data = response.data
+      setUser(data.user)
+      localStorage.setItem('token', data.token)
+      navigate('/home')
+    }
+
+
+    // console.log(userData.username);
     setEmail('')
     setFirstName('')
     setLastName('')
     setPassword('')
+    setConfirmPassword('')
 
   }
   return (
@@ -82,6 +101,16 @@ setUserData({
               }}
               required type="password"
               placeholder='password'
+            />
+
+            <h3 className='text-lg font-medium mb-2'>Confirm Password</h3>
+            <input
+              className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              type="password"
+              placeholder='confirm password'
             />
 
             <button
